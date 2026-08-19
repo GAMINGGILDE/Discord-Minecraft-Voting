@@ -1,0 +1,27 @@
+name: Discord Voting Erinnerung
+
+on:
+  schedule:
+    # Jeden 2. des Monats um 17:00 Uhr deutscher Zeit
+    - cron: "0 17 2 * *"
+      timezone: "Europe/Berlin"
+
+  # Manuelle Ausführung zum Testen
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  send-vote-reminder:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Discord Voting Reminder senden
+        env:
+          DISCORD_VOTE_URL: ${{ secrets.DISCORD_VOTE_URL }}
+        run: |
+          python3 .github/scripts/send-vote-reminder.py
