@@ -4,34 +4,46 @@ Ein Workflow zum Senden monatlicher automatischer Erinnerungen zum Voten unseres
 
 ## 1. Ziel
 
-**Discord-Minecraft-Voting** veröffentlicht automatisch einmal pro Monat eine Voting-Erinnerung in einem definierten Discord-Kanal.
+**Discord-Minecraft-Voting** veröffentlicht einmal pro Monat automatisch eine Voting-Erinnerung in einem festgelegten Discord-Kanal (Minecraft-Chat).
 
-Die Ausführung erfolgt über **GitHub Actions**. Sämtliche redaktionell pflegbaren Inhalte befinden sich in einer Markdown-Datei. Die technische Verarbeitung übernimmt ein Python-Script.
-Der Workflow ist für eine automatische Ausführung **an jedem 2. des Monats um 17:00 Uhr deutscher Zeit** konfiguriert.
-
-Der Ablauf sieht vereinfacht so aus:
+Die Ausführung erfolgt vollständig über **GitHub Actions**. Die Nachricht wird dabei als normale Discord-Nachricht versendet.
+Sämtliche redaktionell pflegbaren Inhalte befinden sich in der Datei:
 
 ```text
-GitHub Repository
-      │
-      ├── vote-reminder.md
+vote-reminder.md
+```
+
+Die technische Verarbeitung übernimmt ein Python-Script. Die automatische Ausführung erfolgt:
+
+**an jedem 2. des Monats um 17:00 Uhr deutscher Zeit.**
+
+Der grundsätzliche Ablauf:
+
+```text
+GitHub Actions
       │
       ▼
-Python-Script
+vote-reminder.md einlesen
       │
-      ├── aktuellen Monat bestimmen
-      ├── Theme auswählen
+      ▼
+aktuellen Monat bestimmen
+      │
+      ├── Monats-Emoji auswählen
       ├── zufälligen Titel auswählen
       ├── zufälligen Monatstext auswählen
-      ├── Januar-Sonderlogik anwenden
-      ├── Discord-Embed erzeugen
-      └── Webhook aufrufen
+      └── ggf. Januar-Sondertext ergänzen
+      │
+      ▼
+Nachrichtenvorlage zusammensetzen
+      │
+      ▼
+2.000-Zeichen-Limit prüfen
       │
       ▼
 Discord Webhook
       │
       ▼
-Discord-Kanal
+normale Discord-Nachricht
 ```
 
 ---
@@ -41,11 +53,13 @@ Discord-Kanal
 Für die Implementierung werden benötigt:
 
 * Discord-Server
-* Discord-Kanal für die Voting-Erinnerung (aktuell Minecraft-Chat)
+* Discord-Kanal für die Voting-Erinnerung ([Minecraft-Chat](https://discord.com/channels/1219625244906754093/1219651063968174110))
 * Berechtigung zum Erstellen bzw. Verwalten eines Discord-Webhooks
 * GitHub-Repository
-* GitHub Actions
-* Repository Secret für die Webhook-URL
+* aktivierte GitHub Actions
+* Repository Secret für die Discord-Webhook-URL
+
+Eine eigene PHP-Umgebung oder ein dauerhaft laufender Server wird nicht benötigt.
 
 ---
 
@@ -66,23 +80,23 @@ repository/
         └── vote-reminder.yml
 ```
 
-Die Aufgaben sind klar voneinander getrennt:
+Die Zuständigkeiten sind dabei voneinander getrennt:
 
 ```text
 vote-reminder.md
         │
-        └── Inhalte und Konfiguration
+        └── Inhalte und Darstellung
 
 send-vote-reminder.py
         │
-        └── Verarbeitungs- und Versandlogik
+        └── Verarbeitung und Discord-Versand
 
 vote-reminder.yml
         │
         └── Zeitsteuerung und Ausführung
 ```
 
-Dadurch können beispielsweise Texte, Links oder Emojis geändert werden, ohne dass die eigentliche Programmlogik angepasst werden muss.
+Dadurch können die Inhalte der Discord-Nachricht bearbeitet werden, ohne Änderungen an der GitHub Action oder dem Python-Script vornehmen zu müssen.
 
 ---
 
@@ -90,7 +104,7 @@ Dadurch können beispielsweise Texte, Links oder Emojis geändert werden, ohne d
 
 ## 4.1 Webhook erstellen
 
-Für den Versand der Nachricht wird im gewünschten Discord-Kanal ein Webhook eingerichtet.
+Für den automatischen Versand wird im gewünschten Discord-Kanal ein Webhook benötigt.
 
 Dazu:
 
@@ -99,19 +113,21 @@ Dazu:
 3. **Webhooks** öffnen.
 4. Einen neuen Webhook erstellen.
 5. Einen Namen vergeben.
-6. Den Zielkanal festlegen.
-7. Optional ein Profilbild für den Webhook definieren.
+6. Den gewünschten Zielkanal auswählen.
+7. Optional ein Profilbild festlegen.
 8. Die Webhook-URL kopieren.
 
-Die Webhook-URL darf nicht öffentlich gespeichert werden.
+Die Webhook-URL ermöglicht das direkte Senden von Nachrichten in den entsprechenden Discord-Kanal.
+
+> Die Webhook-URL ist wie ein Zugangsschlüssel zu behandeln und darf nicht öffentlich im Repository gespeichert werden.
 
 ---
 
-# 5. GitHub Secret
+# 5. GitHub Secret einrichten
 
-Die Discord-Webhook-URL wird als Repository Secret hinterlegt.
+Die Discord-Webhook-URL wird als verschlüsseltes GitHub Repository Secret gespeichert.
 
-Im GitHub-Repository:
+Im entsprechenden Repository:
 
 **Settings → Secrets and variables → Actions**
 
@@ -122,90 +138,165 @@ DISCORD_VOTE_URL
 ```
 
 Als Wert wird die zuvor aus Discord kopierte Webhook-URL eingetragen.
-
-Der Workflow stellt dieses Secret dem Python-Script als Umgebungsvariable zur Verfügung:
+Die GitHub Action stellt dieses Secret anschließend dem Python-Script als Umgebungsvariable zur Verfügung:
 
 ```yaml
 env:
   DISCORD_VOTE_URL: ${{ secrets.DISCORD_VOTE_URL }}
 ```
 
-Dadurch befindet sich die Webhook-URL zu keinem Zeitpunkt direkt im Repository.
+Die Webhook-URL befindet sich dadurch nicht im Quellcode des Repositorys.
 
 ---
 
-# 6. Inhalt der `vote-reminder.md`
+# 6. Die Datei `vote-reminder.md`
 
-Die Datei
+Die Datei:
 
 ```text
 vote-reminder.md
 ```
 
-enthält sämtliche editierbaren Inhalte des Voting-Reminders.
+ist die zentrale Konfigurations- und Inhaltsdatei des Voting-Reminders.
 
-Dazu gehören unter anderem:
+Sie enthält:
 
-* Server-Startdatum
-* Webhook-Name
-* Footer-Text
-* Footer-Icon
-* `@everyone`-Erwähnung
-* zufällige Titel
-* monatsspezifische Farben
-* monatsspezifische Emojis
-* mehrere Nachrichtentexte pro Monat
+* allgemeine Einstellungen
+* die Nachrichtenvorlage
+* mögliche Titel
+* Monats-Emojis
+* mehrere Texte pro Monat
 * Fallback-Nachrichten
 * Voting-Links
-* Erklärung zum Voting
+* zusätzliche Informationen zum Voting
 
-Die frühere PHP-Lösung enthielt diese Inhalte direkt im PHP-Code. Die neue Struktur trennt Inhalt und Programmlogik voneinander. Die ursprüngliche PHP-Datei enthielt beispielsweise für jeden Monat eigene Farben und Emojis.
+In der Implementierung können diese Inhalte unabhängig von der Programmlogik bearbeitet werden.
 
 ---
 
-# 7. Monatsspezifische Inhalte
+# 7. Allgemeine Einstellungen
 
-Für jeden Monat existiert innerhalb der Markdown-Datei ein eigener Abschnitt.
+Am Anfang der Markdown-Datei befinden sich grundlegende Einstellungen:
+
+```markdown
+## Einstellungen
+
+server_start: 2025-01-01
+webhook_username: Minecraft Gilde
+mention: @everyone
+```
+
+#### `server_start`
+
+Definiert das Startdatum des Servers.
+Dieses Datum wird für die Januar-Sonderlogik verwendet.
+
+#### `webhook_username`
+
+Bestimmt den Namen, unter dem der Discord-Webhook die Nachricht veröffentlicht.
+
+#### `mention`
+
+Definiert die Erwähnung am Anfang der Nachricht.
+
+Aktuell:
+
+```text
+@everyone
+```
+
+Dadurch können alle Mitglieder des Discord-Servers auf die monatliche Voting-Erinnerung aufmerksam gemacht werden, sofern die entsprechenden Discord-Berechtigungen dies zulassen.
+
+---
+
+# 8. Nachrichtenvorlage
+
+Der Aufbau der späteren Discord-Nachricht wird direkt in `vote-reminder.md` definiert.
 
 Beispiel:
 
 ```markdown
-### August
+## Nachrichtenvorlage
 
-color: 3718648
-emoji: :camping:
+{{MENTION}}
 
-#### Nachrichten
+{{EMOJI}} **{{TITLE}}**
 
-- Im August genießt man oft die letzten richtig warmen Sommertage :sunrise:
-  Wenn ihr abends noch ein paar Runden auf dem Server spielt, denkt gern an einen Vote für unser Projekt.
+{{MESSAGE}}
 
-- Der Spätsommer im August eignet sich perfekt für entspannte Gaming-Sessions.
-  Wenn euch der Server durch diese Zeit begleitet, freuen wir uns über eure Votes.
+**Voting-Links**
+
+- [Vote auf minecraft-server.eu](https://minecraft-server.eu/vote/index/2321D)
+- [Vote auf minecraft-serverlist.net](https://www.minecraft-serverlist.net/vote/59253)
+- [Vote auf serverliste.net](https://serverliste.net/vote/5142)
+
+**Warum für uns voten?**
+
+:sparkles: Jeder Vote bringt uns in den Serverlisten weiter nach oben. So finden neue Spieler leichter zu uns und unsere Community bleibt lebendig.
+
+:loudspeaker: Alle Infos zum Voten: [minecraft-gilde.de/voten](https://minecraft-gilde.de/voten/)
 ```
 
-Das Python-Script erkennt automatisch den aktuellen Monat und verwendet ausschließlich die dazugehörigen Daten.
-Die bisherige PHP-Implementierung arbeitete nach demselben Prinzip und enthielt beispielsweise drei unterschiedliche Texte für August.
+---
+
+# 9. Platzhalter
+
+Innerhalb der Nachrichtenvorlage stehen vier dynamische Platzhalter zur Verfügung.
+
+```text
+{{MENTION}}
+{{EMOJI}}
+{{TITLE}}
+{{MESSAGE}}
+```
+
+Diese werden unmittelbar vor dem Versand durch das Python-Script ersetzt.
+
+#### `{{MENTION}}`
+
+Wird beispielsweise durch:
+
+```text
+@everyone
+```
+
+ersetzt.
+
+#### `{{EMOJI}}`
+
+Wird durch das Emoji des aktuellen Monats ersetzt.
+
+Im August beispielsweise:
+
+```text
+:camping:
+```
+
+#### `{{TITLE}}`
+
+Wird durch einen zufällig ausgewählten Titel ersetzt.
+
+#### `{{MESSAGE}}`
+
+Wird durch einen zufällig ausgewählten Text des aktuellen Monats ersetzt.
+
+Dadurch lässt sich die Position der dynamischen Bestandteile direkt innerhalb der Markdown-Datei bestimmen.
 
 ---
 
-# 8. Zufällige Nachricht
+# 10. Zufällige Titel
 
-Für jeden Monat sind mehrere Nachrichtentexte hinterlegt.
-Bei jeder Ausführung wird zufällig eine dieser Nachrichten ausgewählt.
-Dadurch wird nicht jeden Monat bzw. bei manuellen Tests immer exakt derselbe Text ausgegeben.
+Unter:
 
----
+```markdown
+## Titel
+```
 
-# 9. Zufälliger Titel
-
-Zusätzlich enthält `vote-reminder.md` mehrere mögliche Titel.
+befinden sich mehrere mögliche Überschriften.
 
 Beispielsweise:
 
 ```markdown
-## Titel
-
 - Monatlicher Voting-Reminder
 - Neuer Monat, neues Voting
 - Unterstütze unseren Server mit deinem Vote
@@ -216,11 +307,107 @@ Beispielsweise:
 - Eure Votes halten den Server aktiv
 ```
 
-Das Python-Script wählt bei jeder Ausführung zufällig einen dieser Titel aus.
+Bei jeder Ausführung wird zufällig einer dieser Titel ausgewählt.
 
 ---
 
-# 10. Januar-Sonderlogik
+# 11. Monatsspezifische Inhalte
+
+Für jeden Monat existiert ein eigener Abschnitt.
+
+Beispiel:
+
+```markdown
+### August
+
+emoji: :camping:
+
+#### Nachrichten
+
+- Im August genießt man oft die letzten richtig warmen Sommertage :sunrise:
+  Wenn ihr abends noch ein paar Runden auf dem Server spielt, denkt gern an einen Vote für unser Projekt.
+
+- Der Spätsommer im August eignet sich perfekt für entspannte Gaming-Sessions.
+  Wenn euch der Server durch diese Zeit begleitet, freuen wir uns über eure Votes.
+
+- Im August haben viele noch Ferien oder Urlaub :smile:
+  Wenn ihr ein paar Klicks übrig habt, votet gern für unseren Server und unterstützt unsere Community.
+```
+
+Das Python-Script ermittelt zunächst den aktuellen Monat und verwendet anschließend ausschließlich den dazugehörigen Abschnitt.
+
+---
+
+# 12. Monatliche Emojis
+
+Jeder Monat besitzt ein eigenes Emoji.
+
+Beispielsweise:
+
+```text
+Januar     → :snowflake:
+Februar    → :heart:
+März       → :four_leaf_clover:
+April      → :tulip:
+Mai        → :cherry_blossom:
+Juni       → :sunny:
+Juli       → :watermelon:
+August     → :camping:
+September  → :fallen_leaf:
+Oktober    → :jack_o_lantern:
+November   → :maple_leaf:
+Dezember   → :christmas_tree:
+```
+
+---
+
+# 13. Zufällige Monatsnachricht
+
+Für jeden Monat stehen mehrere Nachrichtentexte zur Verfügung.
+Das Python-Script wählt bei jeder Ausführung zufällig einen davon aus.
+Dadurch kann beispielsweise der August-Reminder bei mehreren Ausführungen unterschiedliche Texte verwenden.
+
+Die Auswahl erfolgt nach dem Prinzip:
+
+```text
+aktueller Monat
+      │
+      ▼
+passende Nachrichten suchen
+      │
+      ▼
+Nachrichten vorhanden?
+      │
+      ├── JA → zufällige Monatsnachricht
+      │
+      └── NEIN → zufällige Fallback-Nachricht
+```
+
+---
+
+# 14. Fallback-Nachrichten
+
+Sollte für einen Monat versehentlich keine Nachricht definiert sein, stehen zusätzliche Fallback-Texte zur Verfügung.
+
+Diese befinden sich unter:
+
+```markdown
+## Fallback-Nachrichten
+```
+
+Beispielsweise:
+
+```markdown
+- Hey zusammen :wave:
+
+  Wenn euch der Server Spaß macht, unterstützt ihn gern mit einem Vote. Das hilft uns, sichtbar zu bleiben und neue Spieler zu erreichen.
+```
+
+Damit kann der Workflow auch dann eine Nachricht erzeugen, wenn ein Monatsabschnitt unvollständig ist.
+
+---
+
+# 15. Januar-Sonderlogik
 
 Im Januar wird zusätzlich das Alter des Servers berechnet.
 
@@ -232,109 +419,99 @@ Als Startdatum ist aktuell:
 
 hinterlegt.
 
-Das Python-Script berechnet daraus die Anzahl der vergangenen Jahre.
+Das Python-Script berechnet anhand dieses Datums das aktuelle Serveralter.
 
-Im Januar kann dadurch beispielsweise folgende Zusatzinformation erscheinen:
-
-```text
-Unser Server feiert heute seinen 1. Geburtstag 🎂
-```
-
-bzw. bei einem höheren Alter:
+Bei einem Jahr wird sinngemäß folgende Nachricht ergänzt:
 
 ```text
-Unser Server ist jetzt 2 Jahre alt ...
+Unser Server feiert heute seinen **1. Geburtstag** :birthday: – danke, dass ihr von Anfang an dabei seid.
 ```
 
-Die Altersinformation wird ausschließlich im Januar an die ausgewählte Nachricht angehängt.
+Bei mehreren Jahren:
 
----
-
-# 11. Discord-Embed
-
-Die Nachricht wird nicht nur als einfacher Text versendet, sondern als Discord-Embed aufgebaut.
-
-Das Embed enthält unter anderem:
-
-* Emoji und zufälligen Titel
-* zufälligen Monatstext
-* monatsspezifische Farbe
-* Voting-Links
-* Erklärung zum Nutzen der Votes
-* Footer
-* optional `@everyone`
-
----
-
-# 12. Voting-Links
-
-Die Voting-Links werden direkt aus `vote-reminder.md` gelesen.
-
-Beispiel:
-
-```markdown
-### Voting-Links
-
-- [Vote auf minecraft-server.eu](https://minecraft-server.eu/vote/index/2321D)
-- [Vote auf minecraft-serverlist.net](https://www.minecraft-serverlist.net/vote/59253)
-- [Vote auf serverliste.net](https://serverliste.net/vote/5142)
+```text
+Unser Server ist jetzt **X Jahre alt** – danke, dass ihr uns schon so lange begleitet :birthday:
 ```
 
-Werden Links geändert oder ergänzt, muss nur die Markdown-Datei angepasst werden.
+Der Zusatz wird ausschließlich im Januar an den ausgewählten Monatstext angehängt.
 
 ---
 
-# 13. Python-Script
+# 16. Python-Script
 
-Das Script
+Die Datei:
 
 ```text
 .github/scripts/send-vote-reminder.py
 ```
 
-übernimmt ausschließlich die technische Verarbeitung.
+enthält ausschließlich die technische Logik.
 
-Zu seinen Aufgaben gehören:
+Das Script übernimmt:
 
-1. Lesen der Markdown-Datei.
-2. Auslesen der allgemeinen Einstellungen.
-3. Ermittlung des aktuellen Monats nach `Europe/Berlin`.
-4. Auswahl des passenden Monatsthemes.
-5. Zufallsauswahl eines Titels.
-6. Zufallsauswahl einer Monatsnachricht.
-7. Berechnung des Serveralters im Januar.
-8. Erstellung der Discord-Payload.
-9. Versand der Nachricht an den Webhook.
-10. Fehlerbehandlung bei fehlgeschlagenem Versand.
+1. Laden von `vote-reminder.md`.
+2. Auslesen der Einstellungen.
+3. Ermittlung des aktuellen Datums nach `Europe/Berlin`.
+4. Ermittlung des aktuellen Monats.
+5. Auswahl des Monats-Emojis.
+6. Zufällige Auswahl eines Titels.
+7. Zufällige Auswahl einer Monatsnachricht.
+8. Anwendung der Januar-Sonderlogik.
+9. Ersetzung der Platzhalter.
+10. Prüfung der Nachrichtenlänge.
+11. Erstellung der Discord-Webhook-Payload.
+12. Versand an Discord.
 
-Die Discord-Webhook-URL wird dabei ausschließlich aus
-
-```text
-DISCORD_VOTE_URL
-```
-
-gelesen.
+Die redaktionellen Texte sind dadurch vollständig vom Python-Code getrennt.
 
 ---
 
-# 14. GitHub Action
+# 17. Discord-Zeichenlimit
 
-Der eigentliche GitHub-Workflow befindet sich unter:
+Normale Discord-Nachrichten unterliegen einem Limit von **2.000 Zeichen**.
+Das Python-Script prüft deshalb vor dem Versand die Länge der fertig erzeugten Nachricht.
+
+Der Ablauf:
+
+```text
+Nachricht erzeugen
+      │
+      ▼
+Zeichen zählen
+      │
+      ├── ≤ 2.000 → an Discord senden
+      │
+      └── > 2.000 → Workflow mit Fehler abbrechen
+```
+
+Bei einer zu langen Nachricht erscheint im GitHub-Actions-Log eine entsprechende Fehlermeldung.
+
+Dadurch wird verhindert, dass Discord den Request lediglich aufgrund einer zu langen Nachricht ablehnt.
+
+---
+
+# 18. GitHub Action
+
+Die automatische Ausführung wird über:
 
 ```text
 .github/workflows/vote-reminder.yml
 ```
 
-Die zentrale Konfiguration lautet:
+gesteuert.
+
+Die Workflow-Datei:
 
 ```yaml
 name: Discord Voting Erinnerung
 
 on:
   schedule:
+    # Jeden 2. des Monats um 17:00 Uhr deutscher Zeit
     - cron: "0 17 2 * *"
       timezone: "Europe/Berlin"
 
+  # Manuelle Ausführung zum Testen
   workflow_dispatch:
 
 permissions:
@@ -357,14 +534,16 @@ jobs:
 
 ---
 
-# 15. Zeitsteuerung
+# 19. Zeitsteuerung
 
-Die Ausführung erfolgt über:
+Die automatische Ausführung wird durch:
 
 ```yaml
 - cron: "0 17 2 * *"
   timezone: "Europe/Berlin"
 ```
+
+definiert.
 
 Das bedeutet:
 
@@ -372,96 +551,116 @@ Das bedeutet:
 Minute:      0
 Stunde:      17
 Tag:         2
-Monat:       jeder Monat
+Monat:       jeder
 Wochentag:   beliebig
 Zeitzone:    Europe/Berlin
 ```
 
-Der Voting-Reminder wird damit automatisch:
+Der Reminder wird damit automatisch:
 
 **an jedem 2. des Monats um 17:00 Uhr deutscher Zeit**
 
 ausgeführt.
 
-Durch die Verwendung von:
-
-```text
-Europe/Berlin
-```
-
-wird die lokale deutsche Zeitzone verwendet.
-
 ---
 
-# 16. Manuelle Ausführung
+# 20. Manuelles Testen
 
-Zusätzlich zur monatlichen Ausführung enthält der Workflow:
+Zusätzlich zur automatischen Ausführung enthält der Workflow:
 
 ```yaml
 workflow_dispatch:
 ```
 
-Damit lässt sich die Action jederzeit manuell starten.
+Dadurch kann der Reminder jederzeit manuell gestartet werden.
 
 Im GitHub-Repository:
 
 **Actions → Discord Voting Erinnerung → Run workflow**
 
-Dies eignet sich insbesondere:
+Dies sollte insbesondere nach Änderungen an:
 
-* nach Änderungen an `vote-reminder.md`
-* nach Änderungen am Python-Script
-* nach Änderungen am Webhook
-* zum Testen der Discord-Darstellung
+* `vote-reminder.md`
+* `send-vote-reminder.py`
+* `vote-reminder.yml`
+* dem Discord-Webhook
+
+verwendet werden.
 
 ---
 
-# 17. Ablauf einer automatischen Ausführung
+# 21. Beispiel einer Ausführung
 
-Am Beispiel des **2. August um 17:00 Uhr**:
+Am **2. August um 17:00 Uhr** läuft die Automatisierung beispielsweise folgendermaßen:
 
 ```text
-02. August, 17:00 Uhr
+GitHub Actions startet
         │
         ▼
-GitHub startet vote-reminder.yml
+Repository auschecken
         │
         ▼
-Repository wird ausgecheckt
+vote-reminder.md laden
         │
         ▼
-send-vote-reminder.py wird gestartet
+Monat = August
         │
-        ├── erkennt August
-        │
-        ├── liest August-Theme
-        │
-        ├── Farbe auswählen
-        │
-        ├── Emoji auswählen
+        ├── Emoji = :camping:
         │
         ├── zufälligen Titel auswählen
         │
-        └── zufälligen August-Text auswählen
+        └── einen von drei August-Texten auswählen
         │
         ▼
-Voting-Links und weitere Felder ergänzen
+Nachrichtenvorlage laden
         │
         ▼
-Discord-Payload erzeugen
+{{MENTION}} ersetzen
+{{EMOJI}} ersetzen
+{{TITLE}} ersetzen
+{{MESSAGE}} ersetzen
         │
         ▼
-DISCORD_VOTE_URL verwenden
+Nachrichtenlänge prüfen
         │
         ▼
-Nachricht an Discord senden
+DISCORD_VOTE_URL laden
+        │
+        ▼
+Discord Webhook aufrufen
+        │
+        ▼
+Nachricht erscheint im Discord-Kanal
 ```
+
+Eine mögliche Ausgabe könnte dadurch folgendermaßen aussehen:
+
+```text
+@everyone
+
+:camping: **Dein Vote stärkt unsere Community**
+
+Der Spätsommer im August eignet sich perfekt für entspannte Gaming-Sessions.
+Wenn euch der Server durch diese Zeit begleitet, freuen wir uns über eure Votes.
+
+**Voting-Links**
+
+- Vote auf minecraft-server.eu
+- Vote auf minecraft-serverlist.net
+- Vote auf serverliste.net
+
+**Warum für uns voten?**
+:sparkles: Jeder Vote bringt uns in den Serverlisten weiter nach oben. So finden neue Spieler leichter zu uns und unsere Community bleibt lebendig.
+:loudspeaker: Alle Infos zum Voten: minecraft-gilde.de/voten
+```
+
+Bei der nächsten Ausführung kann automatisch ein anderer Titel und ein anderer August-Text verwendet werden.
 
 ---
 
-# 18. Pflege der Inhalte
+# 22. Pflege der Inhalte
 
-Für normale redaktionelle Änderungen muss ausschließlich
+Für reguläre Änderungen muss hauptsächlich:
 
 ```text
 vote-reminder.md
@@ -472,43 +671,46 @@ bearbeitet werden.
 Beispiele:
 
 ```text
-Neuen Monatstext hinzufügen
+Titel hinzufügen
         → vote-reminder.md
 
-Voting-Link ändern
+Monatstext ändern
         → vote-reminder.md
 
-Embed-Farbe ändern
+neuen Monatstext ergänzen
         → vote-reminder.md
 
 Emoji ändern
         → vote-reminder.md
 
-Footer ändern
+Voting-Link ändern
         → vote-reminder.md
 
-Titel ergänzen
+Einleitung ändern
+        → vote-reminder.md
+
+Reihenfolge der Nachricht ändern
         → vote-reminder.md
 ```
 
-Die technische Implementierung muss dafür nicht angepasst werden.
+Das Python-Script muss dafür nicht verändert werden.
 
 ---
 
-# 19. Sicherheit
+# 23. Sicherheit
 
-Die Discord-Webhook-URL darf nicht innerhalb von:
+Die Discord-Webhook-URL darf nicht innerhalb des Repositorys gespeichert werden.
 
-* `vote-reminder.md`
-* `send-vote-reminder.py`
-* `vote-reminder.yml`
-* README-Dateien
-* Commits
-* öffentlichen Dokumentationen
+Insbesondere nicht in:
 
-gespeichert werden.
+```text
+vote-reminder.md
+send-vote-reminder.py
+vote-reminder.yml
+README.md
+```
 
-Stattdessen wird ausschließlich das GitHub Repository Secret
+Stattdessen wird ausschließlich das GitHub Secret:
 
 ```text
 DISCORD_VOTE_URL
@@ -516,30 +718,30 @@ DISCORD_VOTE_URL
 
 verwendet.
 
-Sollte die Webhook-URL versehentlich veröffentlicht werden, sollte der Webhook in Discord erneuert und anschließend das GitHub Secret aktualisiert werden.
+Sollte die Webhook-URL versehentlich veröffentlicht oder committed werden, sollte der betreffende Discord-Webhook erneuert und anschließend das GitHub Secret aktualisiert werden.
 
 ---
 
-# 20. Zusammenfassung
+# 24. Zusammenfassung
 
-Die Implementierung trennt Inhalt, Programmlogik und Zeitsteuerung konsequent voneinander:
+Die endgültige Implementierung trennt **Inhalt, Programmlogik, Zeitsteuerung und Zugangsdaten**:
 
 ```text
 vote-reminder.md
         │
-        └── Was soll veröffentlicht werden?
+        └── Was soll in Discord stehen?
 
 send-vote-reminder.py
         │
-        └── Wie wird die Nachricht verarbeitet?
+        └── Wie wird die Nachricht erzeugt und versendet?
 
 vote-reminder.yml
         │
-        └── Wann wird die Nachricht veröffentlicht?
+        └── Wann wird der Reminder ausgeführt?
 
 DISCORD_VOTE_URL
         │
-        └── Wohin wird die Nachricht gesendet?
+        └── An welchen Discord-Webhook wird gesendet?
 ```
 
-Damit ist der Voting-Reminder ohne PHP-Laufzeit vollständig über **GitHub Actions, Python und eine zentral gepflegte Markdown-Datei** automatisiert.
+Die Nachricht wird **jeden 2. des Monats um 17:00 Uhr deutscher Zeit** automatisch als normale Discord-Nachricht veröffentlicht. Sämtliche relevanten Texte und die Darstellung können zentral über `vote-reminder.md` gepflegt werden, während Python ausschließlich die dynamische Verarbeitung und den Versand übernimmt.
