@@ -24,4 +24,4 @@ jobs:
         env:
           DISCORD_VOTE_URL: ${{ secrets.DISCORD_VOTE_URL }}
         run: |
-          python3 .github/scripts/send-vote-reminder.py
+          python3 .github/scipts/send-vote-reminder.py
