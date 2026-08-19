@@ -178,16 +178,13 @@ emoji: :camping:
 #### Nachrichten
 
 - Im August genießt man oft die letzten richtig warmen Sommertage :sunrise:
-
   Wenn ihr abends noch ein paar Runden auf dem Server spielt, denkt gern an einen Vote für unser Projekt.
 
 - Der Spätsommer im August eignet sich perfekt für entspannte Gaming-Sessions.
-
   Wenn euch der Server durch diese Zeit begleitet, freuen wir uns über eure Votes.
 ```
 
 Das Python-Script erkennt automatisch den aktuellen Monat und verwendet ausschließlich die dazugehörigen Daten.
-
 Die bisherige PHP-Implementierung arbeitete nach demselben Prinzip und enthielt beispielsweise drei unterschiedliche Texte für August.
 
 ---
