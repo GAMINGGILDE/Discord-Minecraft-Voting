@@ -4,9 +4,26 @@
 
 server_start: 2025-01-01
 webhook_username: Minecraft Gilde
-footer_text: Euer lestructor
-footer_icon_url: https://assets.minecraft-gilde.de/cf-logo.png
 mention: @everyone
+
+## Nachrichtenvorlage
+
+{{MENTION}}
+
+{{EMOJI}} **{{TITLE}}**
+
+{{MESSAGE}}
+
+**Voting-Links**
+
+- [Vote auf minecraft-server.eu](https://minecraft-server.eu/vote/index/2321D)
+- [Vote auf minecraft-serverlist.net](https://www.minecraft-serverlist.net/vote/59253)
+- [Vote auf serverliste.net](https://serverliste.net/vote/5142)
+
+**Warum für uns voten?**
+
+:sparkles: Jeder Vote bringt uns in den Serverlisten weiter nach oben. So finden neue Spieler leichter zu uns und unsere Community bleibt lebendig.
+:loudspeaker: Alle Infos zum Voten: [minecraft-gilde.de/voten](https://minecraft-gilde.de/voten/)
 
 ## Titel
 
@@ -23,23 +40,21 @@ mention: @everyone
 
 ### Januar
 
-color: 6333946
 emoji: :snowflake:
 
 #### Nachrichten
 
 - Im Januar starten wir gemeinsam ins neue Jahr :tada:
   Wenn ihr gut reingekommen seid und euch der Server Freude macht, unterstützt uns gern mit einem Vote. So beginnt das Jahr für die Community direkt mit einem kleinen Boost.
-  
+
 - Der Januar fühlt sich oft noch nach Neuanfang an :partying_face:
   Wenn ihr weiterhin gern bei uns spielt, freuen wir uns über eure Votes. Damit bleibt der Server auch in diesem Jahr aktiv und sichtbar.
-  
+
 - Im kalten Januar sind gemütliche Runden auf dem Server genau richtig :raised_hands:
   Mit euren Votes helft ihr uns, den Server sichtbar zu halten und neue Spieler für das neue Jahr anzuziehen.
 
 ### Februar
 
-color: 16020150
 emoji: :heart:
 
 #### Nachrichten
@@ -55,7 +70,6 @@ emoji: :heart:
 
 ### März
 
-color: 4906624
 emoji: :four_leaf_clover:
 
 #### Nachrichten
@@ -71,7 +85,6 @@ emoji: :four_leaf_clover:
 
 ### April
 
-color: 11006928
 emoji: :tulip:
 
 #### Nachrichten
@@ -87,7 +100,6 @@ emoji: :tulip:
 
 ### Mai
 
-color: 16498468
 emoji: :cherry_blossom:
 
 #### Nachrichten
@@ -103,7 +115,6 @@ emoji: :cherry_blossom:
 
 ### Juni
 
-color: 16347926
 emoji: :sunny:
 
 #### Nachrichten
@@ -119,7 +130,6 @@ emoji: :sunny:
 
 ### Juli
 
-color: 16478597
 emoji: :watermelon:
 
 #### Nachrichten
@@ -135,7 +145,6 @@ emoji: :watermelon:
 
 ### August
 
-color: 3718648
 emoji: :camping:
 
 #### Nachrichten
@@ -151,7 +160,6 @@ emoji: :camping:
 
 ### September
 
-color: 2278750
 emoji: :fallen_leaf:
 
 #### Nachrichten
@@ -167,7 +175,6 @@ emoji: :fallen_leaf:
 
 ### Oktober
 
-color: 11032055
 emoji: :jack_o_lantern:
 
 #### Nachrichten
@@ -183,7 +190,6 @@ emoji: :jack_o_lantern:
 
 ### November
 
-color: 15357964
 emoji: :maple_leaf:
 
 #### Nachrichten
@@ -199,7 +205,6 @@ emoji: :maple_leaf:
 
 ### Dezember
 
-color: 959977
 emoji: :christmas_tree:
 
 #### Nachrichten
@@ -220,17 +225,3 @@ emoji: :christmas_tree:
 
 - Monatlicher Reminder:
   Eure Votes sind wichtig, damit der Server in den Listen oben bleibt und neue Spieler anzieht. Danke für euren Support :raised_hands:
-
-## Embed-Felder
-
-### Voting-Links
-
-- [Vote auf minecraft-server.eu](https://minecraft-server.eu/vote/index/2321D)
-- [Vote auf minecraft-serverlist.net](https://www.minecraft-serverlist.net/vote/59253)
-- [Vote auf serverliste.net](https://serverliste.net/vote/5142)
-
-### Warum für uns voten?
-
-:sparkles: Jeder Vote bringt uns in den Serverlisten weiter nach oben. So finden neue Spieler leichter zu uns und unsere Community bleibt lebendig.
-
-:loudspeaker: Alle Infos zum Voten: [minecraft-gilde.de/voten](https://minecraft-gilde.de/voten/)
