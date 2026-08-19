@@ -95,6 +95,7 @@ def send_webhook(url, username, content):
         "content": content,
         "username": username,
         "allowed_mentions": {"parse": ["everyone"]},
+        "flags": 4,
     }
 
     data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
