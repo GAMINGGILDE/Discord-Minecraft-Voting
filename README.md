@@ -4,7 +4,7 @@ Ein Workflow zum Senden monatlicher automatischer Erinnerungen zum Voten unseres
 
 ## 1. Ziel
 
-**Discord-Minecraft-Voting** veröffentlicht einmal pro Monat automatisch eine Voting-Erinnerung in einem festgelegten Discord-Kanal (Minecraft-Chat).
+**Discord-Minecraft-Voting** veröffentlicht einmal pro Monat automatisch eine Voting-Erinnerung im [Minecraft-Chat](https://discord.com/channels/1219625244906754093/1219651063968174110)-Kanal.
 
 Die Ausführung erfolgt vollständig über **GitHub Actions**. Die Nachricht wird dabei als normale Discord-Nachricht versendet.
 Sämtliche redaktionell pflegbaren Inhalte befinden sich in der Datei:
@@ -46,9 +46,7 @@ Discord Webhook
 normale Discord-Nachricht
 ```
 
----
-
-# 2. Voraussetzungen
+## 2. Voraussetzungen
 
 Für die Implementierung werden benötigt:
 
@@ -61,9 +59,7 @@ Für die Implementierung werden benötigt:
 
 Eine eigene PHP-Umgebung oder ein dauerhaft laufender Server wird nicht benötigt.
 
----
-
-# 3. Repository-Struktur
+## 3. Repository-Struktur
 
 Die Implementierung besteht aus drei zentralen Dateien:
 
@@ -98,11 +94,9 @@ vote-reminder.yml
 
 Dadurch können die Inhalte der Discord-Nachricht bearbeitet werden, ohne Änderungen an der GitHub Action oder dem Python-Script vornehmen zu müssen.
 
----
+## 4. Einrichtung in Discord
 
-# 4. Einrichtung in Discord
-
-## 4.1 Webhook erstellen
+### 4.1 Webhook erstellen
 
 Für den automatischen Versand wird im gewünschten Discord-Kanal ein Webhook benötigt.
 
@@ -121,9 +115,7 @@ Die Webhook-URL ermöglicht das direkte Senden von Nachrichten in den entspreche
 
 > Die Webhook-URL ist wie ein Zugangsschlüssel zu behandeln und darf nicht öffentlich im Repository gespeichert werden.
 
----
-
-# 5. GitHub Secret einrichten
+## 5. GitHub Secret einrichten
 
 Die Discord-Webhook-URL wird als verschlüsseltes GitHub Repository Secret gespeichert.
 
@@ -147,9 +139,7 @@ env:
 
 Die Webhook-URL befindet sich dadurch nicht im Quellcode des Repositorys.
 
----
-
-# 6. Die Datei `vote-reminder.md`
+## 6. Die Datei `vote-reminder.md`
 
 Die Datei:
 
@@ -172,9 +162,7 @@ Sie enthält:
 
 In der Implementierung können diese Inhalte unabhängig von der Programmlogik bearbeitet werden.
 
----
-
-# 7. Allgemeine Einstellungen
+## 7. Allgemeine Einstellungen
 
 Am Anfang der Markdown-Datei befinden sich grundlegende Einstellungen:
 
@@ -207,9 +195,7 @@ Aktuell:
 
 Dadurch können alle Mitglieder des Discord-Servers auf die monatliche Voting-Erinnerung aufmerksam gemacht werden, sofern die entsprechenden Discord-Berechtigungen dies zulassen.
 
----
-
-# 8. Nachrichtenvorlage
+## 8. Nachrichtenvorlage
 
 Der Aufbau der späteren Discord-Nachricht wird direkt in `vote-reminder.md` definiert.
 
@@ -237,9 +223,7 @@ Beispiel:
 :loudspeaker: Alle Infos zum Voten: [minecraft-gilde.de/voten](https://minecraft-gilde.de/voten/)
 ```
 
----
-
-# 9. Platzhalter
+## 9. Platzhalter
 
 Innerhalb der Nachrichtenvorlage stehen vier dynamische Platzhalter zur Verfügung.
 
@@ -282,9 +266,7 @@ Wird durch einen zufällig ausgewählten Text des aktuellen Monats ersetzt.
 
 Dadurch lässt sich die Position der dynamischen Bestandteile direkt innerhalb der Markdown-Datei bestimmen.
 
----
-
-# 10. Zufällige Titel
+## 10. Zufällige Titel
 
 Unter:
 
@@ -309,9 +291,7 @@ Beispielsweise:
 
 Bei jeder Ausführung wird zufällig einer dieser Titel ausgewählt.
 
----
-
-# 11. Monatsspezifische Inhalte
+## 11. Monatsspezifische Inhalte
 
 Für jeden Monat existiert ein eigener Abschnitt.
 
@@ -336,9 +316,7 @@ emoji: :camping:
 
 Das Python-Script ermittelt zunächst den aktuellen Monat und verwendet anschließend ausschließlich den dazugehörigen Abschnitt.
 
----
-
-# 12. Monatliche Emojis
+## 12. Monatliche Emojis
 
 Jeder Monat besitzt ein eigenes Emoji.
 
@@ -359,9 +337,7 @@ November   → :maple_leaf:
 Dezember   → :christmas_tree:
 ```
 
----
-
-# 13. Zufällige Monatsnachricht
+## 13. Zufällige Monatsnachricht
 
 Für jeden Monat stehen mehrere Nachrichtentexte zur Verfügung.
 Das Python-Script wählt bei jeder Ausführung zufällig einen davon aus.
@@ -383,9 +359,7 @@ Nachrichten vorhanden?
       └── NEIN → zufällige Fallback-Nachricht
 ```
 
----
-
-# 14. Fallback-Nachrichten
+## 14. Fallback-Nachrichten
 
 Sollte für einen Monat versehentlich keine Nachricht definiert sein, stehen zusätzliche Fallback-Texte zur Verfügung.
 
@@ -405,9 +379,7 @@ Beispielsweise:
 
 Damit kann der Workflow auch dann eine Nachricht erzeugen, wenn ein Monatsabschnitt unvollständig ist.
 
----
-
-# 15. Januar-Sonderlogik
+## 15. Januar-Sonderlogik
 
 Im Januar wird zusätzlich das Alter des Servers berechnet.
 
@@ -435,9 +407,7 @@ Unser Server ist jetzt **X Jahre alt** – danke, dass ihr uns schon so lange be
 
 Der Zusatz wird ausschließlich im Januar an den ausgewählten Monatstext angehängt.
 
----
-
-# 16. Python-Script
+## 16. Python-Script
 
 Die Datei:
 
@@ -464,9 +434,7 @@ Das Script übernimmt:
 
 Die redaktionellen Texte sind dadurch vollständig vom Python-Code getrennt.
 
----
-
-# 17. Discord-Zeichenlimit
+## 17. Discord-Zeichenlimit
 
 Normale Discord-Nachrichten unterliegen einem Limit von **2.000 Zeichen**.
 Das Python-Script prüft deshalb vor dem Versand die Länge der fertig erzeugten Nachricht.
@@ -488,9 +456,7 @@ Bei einer zu langen Nachricht erscheint im GitHub-Actions-Log eine entsprechende
 
 Dadurch wird verhindert, dass Discord den Request lediglich aufgrund einer zu langen Nachricht ablehnt.
 
----
-
-# 18. GitHub Action
+## 18. GitHub Action
 
 Die automatische Ausführung wird über:
 
@@ -532,9 +498,7 @@ jobs:
           python3 .github/scripts/send-vote-reminder.py
 ```
 
----
-
-# 19. Zeitsteuerung
+## 19. Zeitsteuerung
 
 Die automatische Ausführung wird durch:
 
@@ -562,9 +526,7 @@ Der Reminder wird damit automatisch:
 
 ausgeführt.
 
----
-
-# 20. Manuelles Testen
+## 20. Manuelles Testen
 
 Zusätzlich zur automatischen Ausführung enthält der Workflow:
 
@@ -587,9 +549,7 @@ Dies sollte insbesondere nach Änderungen an:
 
 verwendet werden.
 
----
-
-# 21. Beispiel einer Ausführung
+## 21. Beispiel einer Ausführung
 
 Am **2. August um 17:00 Uhr** läuft die Automatisierung beispielsweise folgendermaßen:
 
@@ -656,9 +616,7 @@ Wenn euch der Server durch diese Zeit begleitet, freuen wir uns über eure Votes
 
 Bei der nächsten Ausführung kann automatisch ein anderer Titel und ein anderer August-Text verwendet werden.
 
----
-
-# 22. Pflege der Inhalte
+## 22. Pflege der Inhalte
 
 Für reguläre Änderungen muss hauptsächlich:
 
@@ -695,9 +653,7 @@ Reihenfolge der Nachricht ändern
 
 Das Python-Script muss dafür nicht verändert werden.
 
----
-
-# 23. Sicherheit
+## 23. Sicherheit
 
 Die Discord-Webhook-URL darf nicht innerhalb des Repositorys gespeichert werden.
 
@@ -720,9 +676,7 @@ verwendet.
 
 Sollte die Webhook-URL versehentlich veröffentlicht oder committed werden, sollte der betreffende Discord-Webhook erneuert und anschließend das GitHub Secret aktualisiert werden.
 
----
-
-# 24. Zusammenfassung
+## 24. Zusammenfassung
 
 Die endgültige Implementierung trennt **Inhalt, Programmlogik, Zeitsteuerung und Zugangsdaten**:
 
