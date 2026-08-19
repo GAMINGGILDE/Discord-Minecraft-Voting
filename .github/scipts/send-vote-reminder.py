@@ -11,6 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CONTENT_FILE = ROOT / "vote-reminder.md"
+MAX_CONTENT_LENGTH = 2000
 
 MONTHS = [
     "Januar", "Februar", "März", "April", "Mai", "Juni",
@@ -40,17 +41,6 @@ def parse_titles(text):
     raw = section(text, "Titel", 2)
     return [line[2:].strip() for line in raw.splitlines() if line.startswith("- ")]
 
-def parse_month(text, month_name):
-    raw = section(section(text, "Monate", 2), month_name, 3)
-    color_match = re.search(r"(?m)^color:\s*(\d+)\s*$", raw)
-    emoji_match = re.search(r"(?m)^emoji:\s*(.+?)\s*$", raw)
-    msg_raw = section(raw, "Nachrichten", 4)
-    return {
-        "color": int(color_match.group(1)) if color_match else 0,
-        "emoji": emoji_match.group(1).strip() if emoji_match else "",
-        "messages": parse_markdown_list(msg_raw),
-    }
-
 def parse_markdown_list(raw):
     items = []
     current = []
@@ -68,7 +58,16 @@ def parse_markdown_list(raw):
                 current.append(line)
     if current:
         items.append("\n".join(current).strip())
-    return [i for i in items if i]
+    return [item for item in items if item]
+
+def parse_month(text, month_name):
+    raw = section(section(text, "Monate", 2), month_name, 3)
+    emoji_match = re.search(r"(?m)^emoji:\s*(.+?)\s*$", raw)
+    msg_raw = section(raw, "Nachrichten", 4)
+    return {
+        "emoji": emoji_match.group(1).strip() if emoji_match else "",
+        "messages": parse_markdown_list(msg_raw),
+    }
 
 def server_age_note(server_start):
     start = date.fromisoformat(server_start)
@@ -79,24 +78,42 @@ def server_age_note(server_start):
         return "Unser Server feiert heute seinen **1. Geburtstag** :birthday: – danke, dass ihr von Anfang an dabei seid."
     return f"Unser Server ist jetzt **{years} Jahre alt** – danke, dass ihr uns schon so lange begleitet :birthday:"
 
-def field_value(text, title):
-    return section(section(text, "Embed-Felder", 2), title, 3)
+def render_message(template, mention, emoji, title, message):
+    replacements = {
+        "{{MENTION}}": mention,
+        "{{EMOJI}}": emoji,
+        "{{TITLE}}": title,
+        "{{MESSAGE}}": message,
+    }
+    rendered = template
+    for placeholder, value in replacements.items():
+        rendered = rendered.replace(placeholder, value)
+    return rendered.strip()
 
-def send_webhook(url, payload):
+def send_webhook(url, username, content):
+    payload = {
+        "content": content,
+        "username": username,
+        "allowed_mentions": {"parse": ["everyone"]},
+    }
+
     data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req = urllib.request.Request(
         url,
         data=data,
         headers={
             "Content-Type": "application/json",
-            "User-Agent": "GitHub-Actions-Discord-Vote-Reminder/1.0",
+            "User-Agent": "GitHub-Actions-Discord-Vote-Reminder/2.0",
         },
         method="POST",
     )
+
     try:
         with urllib.request.urlopen(req) as response:
             if response.status not in (200, 204):
-                raise RuntimeError(f"Discord Webhook fehlgeschlagen: HTTP {response.status}")
+                raise RuntimeError(
+                    f"Discord Webhook fehlgeschlagen: HTTP {response.status}"
+                )
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
         raise RuntimeError(
@@ -110,58 +127,57 @@ def main():
 
     text = CONTENT_FILE.read_text(encoding="utf-8")
     settings = parse_settings(text)
+    template = section(text, "Nachrichtenvorlage", 2)
     titles = parse_titles(text)
 
     now = datetime.now(ZoneInfo("Europe/Berlin"))
     month_number = now.month
     month_name = MONTHS[month_number - 1]
-    theme = parse_month(text, month_name)
+    month = parse_month(text, month_name)
 
-    messages = theme["messages"]
+    messages = month["messages"]
     if not messages:
         messages = parse_markdown_list(section(text, "Fallback-Nachrichten", 2))
 
+    if not titles:
+        raise RuntimeError("Keine Titel in vote-reminder.md gefunden.")
+    if not messages:
+        raise RuntimeError("Keine Nachrichten in vote-reminder.md gefunden.")
+    if not template:
+        raise RuntimeError("Keine Nachrichtenvorlage in vote-reminder.md gefunden.")
+
+    title = random.choice(titles)
     message = random.choice(messages)
 
-    # Wie in der ursprünglichen PHP-Datei nur im Januar anhängen.
     if month_number == 1:
         note = server_age_note(settings["server_start"])
         if note:
             message += "\n\n" + note
 
-    title = random.choice(titles)
+    content = render_message(
+        template=template,
+        mention=settings.get("mention", "@everyone"),
+        emoji=month["emoji"],
+        title=title,
+        message=message,
+    )
 
-    payload = {
-        "content": settings.get("mention", "@everyone"),
-        "allowed_mentions": {"parse": ["everyone"]},
-        "username": settings.get("webhook_username", "Minecraft Gilde"),
-        "embeds": [
-            {
-                "footer": {
-                    "text": settings.get("footer_text", ""),
-                    "icon_url": settings.get("footer_icon_url", ""),
-                },
-                "title": f'{theme["emoji"]} {title}',
-                "description": message,
-                "color": theme["color"],
-                "fields": [
-                    {
-                        "name": "Voting-Links",
-                        "value": field_value(text, "Voting-Links"),
-                        "inline": False,
-                    },
-                    {
-                        "name": "Warum für uns voten?",
-                        "value": field_value(text, "Warum für uns voten?"),
-                        "inline": False,
-                    },
-                ],
-            }
-        ],
-    }
+    if len(content) > MAX_CONTENT_LENGTH:
+        raise RuntimeError(
+            f"Die erzeugte Discord-Nachricht ist mit {len(content)} Zeichen "
+            f"zu lang. Discord erlaubt maximal {MAX_CONTENT_LENGTH} Zeichen."
+        )
 
-    send_webhook(webhook_url, payload)
-    print(f"Voting-Reminder für {month_name} erfolgreich gesendet.")
+    send_webhook(
+        webhook_url,
+        settings.get("webhook_username", "Minecraft Gilde"),
+        content,
+    )
+
+    print(
+        f"Voting-Reminder für {month_name} erfolgreich gesendet "
+        f"({len(content)} Zeichen)."
+    )
 
 if __name__ == "__main__":
     main()
