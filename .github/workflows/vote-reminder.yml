@@ -3,7 +3,7 @@ name: Discord Voting Erinnerung
 on:
   schedule:
     # Jeden 2. des Monats um 17:00 Uhr deutscher Zeit
-    - cron: "0 17 2 * *"
+    - cron: "12 15 2 * *"
       timezone: "Europe/Berlin"
 
   # Manuelle Ausführung zum Testen
@@ -24,4 +24,4 @@ jobs:
         env:
           DISCORD_VOTE_URL: ${{ secrets.DISCORD_VOTE_URL }}
         run: |
-          python3 .github/scipts/send-vote-reminder.py
+          python3 .github/scripts/send-vote-reminder.py
